@@ -4,8 +4,12 @@ import csv
 
 #get input from user
 def getInput():
-    print ("getInput")
-    return 312
+    try:
+        X = int(input("Areacode? "))
+    except ValueError:
+        print("invalid input")
+        X = 9999
+    return X
 
 #open file
 def openFile():
@@ -19,14 +23,18 @@ def openFile():
                 area = row[0]
                 city = row[3]
                 areacodes[i]=(str(area)+","+row[1]+' '+city)
-                print(areacodes[i])
+                #print(areacodes[i])
             i=i+1
     return areacodes
 
 #search data for area code
-def searchData():
+def searchData(c,x):
     print ("searchData")
-
+    sIdx = 0
+    eIdx = len(x)-1
+    mIdx = eIdx >> 1
+    print(sIdx, mIdx, eIdx)
+    
 #display city to user
 def displayCity():
     print ("displayCity")
@@ -36,6 +44,7 @@ def displayCity():
 
 #Main logic
 arco = getInput()
-openFile()
-searchData()
+print("arco = " + str(arco))
+codes=openFile()
+searchData(arco,codes)
 displayCity()
