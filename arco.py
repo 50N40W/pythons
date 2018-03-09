@@ -13,7 +13,7 @@ def getInput():
 
 #open file
 def openFile():
-    print ("openFile")
+    
     with open('arco.csv') as csvfile:
         myCSV=csv.reader(csvfile, delimiter=',')
         areacodes={}
@@ -29,15 +29,29 @@ def openFile():
 
 #search data for area code
 def searchData(c,x):
-    print ("searchData")
+    
     sIdx = 0
     eIdx = len(x)-1
     mIdx = eIdx >> 1
     print(sIdx, mIdx, eIdx)
+    city = "organic being"
+    while city == "organic being":
+        mIdx = ((eIdx-sIdx) >> 1) +sIdx
+        thisRow = x[mIdx].split(",")
+        current = int (thisRow[0])
+        if(current ==c):
+            city = thisRow[1]
+        elif current < c:
+            sIdx = mIdx
+        elif current > c:
+            eIdx = mIdx
+        elif mIdx == eIdx:
+            city = "rock and roll"
+    return city
     
 #display city to user
-def displayCity():
-    print ("displayCity")
+def displayCity(City):
+    print (" "+ City)
 
 #close file
 
@@ -46,5 +60,6 @@ def displayCity():
 arco = getInput()
 print("arco = " + str(arco))
 codes=openFile()
-searchData(arco,codes)
-displayCity()
+Data =searchData(arco,codes)
+displayCity(Data)
+
