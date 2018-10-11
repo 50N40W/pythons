@@ -5,8 +5,11 @@ millis = int(round(time.time() * 1000))
 LedPin = 11  # LED No. 1
 Led2Pin = 7  # LED No. 2
 Led3Pin = 14 # LED No. 3
-blinkPeriod = 700
 
+sw1Pin = 15  # Switch No. 1
+
+blinkPeriod = 5000
+dbTime = 2000
 #******************************************                        
 # The Class "Lampy" is defined here
 class Lampy:
@@ -29,6 +32,35 @@ class Lampy:
 # This ends the definition of "Lampy"
 #******************************************
 
+#******************************************
+# The class "Switchy" is like Lampy, but for a switch input
+class Switchy:
+    time = 0
+    previous = 0
+    dbCtr = 0
+    dbPeriod = 500
+    swPin = 0
+    swName = 'blank'
+    switchState = "open"
+
+    # the debounce method exists to debounce a switch
+    def debounce(self):
+        if self.time - self.previous > self.dbPeriod:
+            self.previous = self.time
+            if self.rawState == "low":
+                self.dbCtr = min(dbTime, self.dbCtr+self.dbPeriod)
+                if self.dbCtr >= dbTime:
+                    self.switchState = 'high'
+            else:
+                self.dbCtr = max(0, self.dbCtr-self.dbPeriod)
+                if self.dbCtr <= 0:
+                    self.switchState = 'low'
+            print(self.dbCtr)
+        
+
+# and that ends class "Switchy"
+#******************************************
+
 # Instantiate three objects of the class "Lampy"
 # In future, investigate where else these might be created
 Lamp1 = Lampy()
@@ -43,6 +75,10 @@ Lamp3 = Lampy()
 Lamp3.gpioPin = Led3Pin
 Lamp3.previous += 90
 Lamp3.period = int(blinkPeriod*2)+73
+
+Switch1 = Switchy()
+Switch1.name = 'Switch_1'
+Switch1.rawState = "low"
 
 def setup():
     #*** Uncomment out these lines for use on RPi ***
@@ -65,6 +101,12 @@ def loop():
         Lamp2.LampCheck()
         Lamp3.LampCheck()
 
+        #until we hook it up to real IO, use the pretend
+        # lamp1 state to simulate a switch input.
+        Switch1.rawState = Lamp1.lampState
+        Switch1.time = millis
+        Switch1.debounce()
+
 def destroy():
     GPIO.output(LedPin, GPIO.LOW)     # led off
     GPIO.cleanup()                     # Release resource
@@ -76,3 +118,4 @@ if __name__ == '__main__':     # Program start from here
     except KeyboardInterrupt:
         # When 'Ctrl+C' is pressed, the destroy() will be  executed.
         destroy()
+
