@@ -1,12 +1,12 @@
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 millis = int(round(time.time() * 1000))
 #startTime = millis
 LedPin = 11  # LED No. 1
 Led2Pin = 7  # LED No. 2
-Led3Pin = 14 # LED No. 3
+Led3Pin = 19 # LED No. 3
 
-sw1Pin = 15  # Switch No. 1
+sw1Pin = 40  # Switch No. 1
 
 blinkPeriod = 5000
 dbTime = 2000
@@ -24,11 +24,11 @@ class Lampy:
             self.previous = self.time
             if self.lampState == "low":
                 self.lampState = "high"
-                #GPIO.output(self.gpioPin, GPIO.HIGH) 
+                GPIO.output(self.gpioPin, GPIO.HIGH) 
             else:
                 self.lampState = "low"    
-                #GPIO.output(self.gpioPin, GPIO.LOW)
-            print(str(self.gpioPin) + ' ' + str(self.lampState))
+                GPIO.output(self.gpioPin, GPIO.LOW)
+            #print(str(self.gpioPin) + ' ' + str(self.lampState))
 # This ends the definition of "Lampy"
 #******************************************
 
@@ -38,24 +38,33 @@ class Switchy:
     time = 0
     previous = 0
     dbCtr = 0
-    dbPeriod = 500
+    prevdbCtr = 0
+    dbPeriod = 200
     swPin = 0
     swName = 'blank'
-    switchState = "open"
+    switchState = False
 
     # the debounce method exists to debounce a switch
     def debounce(self):
+        self.rawState = GPIO.input(self.swPin)
+        #self.rawState = GPIO.input(18)
         if self.time - self.previous > self.dbPeriod:
             self.previous = self.time
-            if self.rawState == "low":
+            if self.rawState == True:
+                print("      ++++++")
+            else:
+                print("______")
+            if self.rawState == False:
                 self.dbCtr = min(dbTime, self.dbCtr+self.dbPeriod)
                 if self.dbCtr >= dbTime:
-                    self.switchState = 'high'
+                    self.switchState = True
             else:
                 self.dbCtr = max(0, self.dbCtr-self.dbPeriod)
                 if self.dbCtr <= 0:
-                    self.switchState = 'low'
-            print(self.dbCtr)
+                    self.switchState = False
+            if self.dbCtr != self.prevdbCtr:
+                print(self.dbCtr)
+                self.prevdbCtr = self.dbCtr
         
 
 # and that ends class "Switchy"
@@ -77,33 +86,37 @@ Lamp3.previous += 90
 Lamp3.period = int(blinkPeriod*2)+73
 
 Switch1 = Switchy()
+Switch1.swPin = sw1Pin
 Switch1.name = 'Switch_1'
 Switch1.rawState = "low"
 
 def setup():
     #*** Uncomment out these lines for use on RPi ***
     # Use Physical Pin Number rather than silkscreen
-    #GPIO.setmode(GPIO.BOARD)
+    GPIO.setmode(GPIO.BOARD)
     print("in setup")
-    #GPIO.setup(LedPin, GPIO.OUT)   
-    #GPIO.output(LedPin, GPIO.HIGH)
+    GPIO.setup(LedPin, GPIO.OUT)   
+    GPIO.output(LedPin, GPIO.HIGH)
     
-    #GPIO.setup(Led2Pin, GPIO.OUT)   
-    #GPIO.output(Led2Pin, GPIO.HIGH)
+    GPIO.setup(Led2Pin, GPIO.OUT)   
+    GPIO.output(Led2Pin, GPIO.HIGH)
+
+    GPIO.setup(sw1Pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    #GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 def loop():
     while True:
         millis = int(round(time.time() * 1000))
         Lamp1.time = millis
         Lamp2.time = millis
-        Lamp3.time = millis
+        #Lamp3.time = millis
         Lamp1.LampCheck()
         Lamp2.LampCheck()
-        Lamp3.LampCheck()
+        #Lamp3.LampCheck()
 
         #until we hook it up to real IO, use the pretend
         # lamp1 state to simulate a switch input.
-        Switch1.rawState = Lamp1.lampState
+        #Switch1.rawState = Lamp1.lampState
         Switch1.time = millis
         Switch1.debounce()
 
@@ -118,4 +131,3 @@ if __name__ == '__main__':     # Program start from here
     except KeyboardInterrupt:
         # When 'Ctrl+C' is pressed, the destroy() will be  executed.
         destroy()
-
